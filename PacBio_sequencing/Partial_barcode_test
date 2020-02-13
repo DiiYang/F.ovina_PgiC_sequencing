@@ -91,3 +91,19 @@ laa --minLength=5000 --fullLength --Clustering --Phasing --minPredictedAccuracy=
 # Note: --fullLengthClustering may still be useful 
 # Note: --clusterGuide may be excluded? as they can still cluster in the way they align to each other
 laa --minLength=5000 --fullLength --Clustering --Phasing --minPredictedAccuracy=0.600 PgiC_demul.3--51.bam
+>|> 20200213 17:15:54.205 -|- INFO -|- AmpliconAnalysis -|- 0x7f7cd0adc7c0|| -|- found consensus models for: (S/P1-C1.1, S/P1-C1.2, S/P1-C1.3, S/P1-C1/beta, S/P2-C2, S/P2-C2/5.0, S/P3-C1/5.0-8M, S/P3-C3/5.0, S/P4-C2/5.0-8M, S/P4.1-C2/5.0-8M)
+>|> 20200213 17:15:54.205 -|- INFO -|- AmpliconAnalysis -|- 0x7f7cd0adc7c0|| -|- using consensus models for: (S/P3-C3/5.0)
+>|> 20200213 17:15:54.205 -|- INFO -|- UsePacBioIndices -|- 0x7f7cd0adc7c0|| -|- found .pbi index for file: /scratch/diy/Barcode_test_1/split_bam/PgiC_demul.3--51.bam
+>|> 20200213 17:15:54.205 -|- INFO -|- UsePacBioIndices -|- 0x7f7cd0adc7c0|| -|- .pbi indices found or generated for all bam files - fast indexing enabled
+>|> 20200213 17:15:54.207 -|- INFO -|- GetBarcodePairs -|- 0x7f7cd0adc7c0|| -|- preprocessing of data files found 1 post-filter barcodes and took 0.001s
+>|> 20200213 17:15:54.469 -|- WARN -|- Fill -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', Could not read total subreads from input metadata!
+>|> 20200213 17:15:54.469 -|- INFO -|- Fill -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', filtering took 0.261s and found 855 post-filter subreads
+>|> 20200213 17:15:54.469 -|- INFO -|- DoAmpliconAnalysis -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', analyzing subset 'All' with 855 subreads
+>|> 20200213 17:15:54.756 -|- INFO -|- GeneCluster -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', aligning 400 of 855 subreads
+>|> 20200213 17:16:39.909 -|- INFO -|- GeneCluster -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', subread alignment took 45.152s
+>|> 20200213 17:16:40.799 -|- INFO -|- GeneCluster -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', coarse clustering generated 1 clusters and took 0.889s
+>|> 20200213 17:16:42.816 -|- INFO -|- GeneCluster -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', subread ranking took 2.017s
+>|> 20200213 17:16:45.636 -|- INFO -|- PoaCluster -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', poa alignments and ranking took 0.192s
+>|> 20200213 17:16:45.636 -|- INFO -|- FinePhaser -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', cluster #0, phasing/consensus of 500 reads
+>|> 20200213 17:53:32.177 -|- INFO -|- FinePhaser -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', cluster #0, split into 2 haplotypes
+>|> 20200213 18:01:14.969 -|- INFO -|- FinePhaser -|- 0x7f7cd0adc7c0|| -|- barcode '3--51', cluster #0, 2 of 2 models converged

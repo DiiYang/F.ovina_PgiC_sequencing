@@ -1,0 +1,18 @@
+
+#Get a loop to run all the lima output in laa
+
+#!/bin/bash
+
+for i in $(ls *.bam)
+do
+ laa --minLength=5000 --fullLength --Clustering --Phasing --minPredictedAccuracy=0.999 --resultFile="./Output/$i.fastq" --reportFile="./Summary/$i.csv" ./$i 
+done
+
+# In linux, open nano 
+nano
+# Copy and paste the above code in nano and save as loop_test.sh
+# Change the permissions of this file and check 
+ chmod +x loop_test.sh
+ ll loop_test.sh
+-rwxr-xr-x 1 diy diy 200 Feb 13 18:02 loop_test.sh
+
