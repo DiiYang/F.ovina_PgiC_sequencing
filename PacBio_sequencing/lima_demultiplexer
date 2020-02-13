@@ -1,0 +1,63 @@
+######## PacBio Barcode Demultiplexer lima #########
+
+# specify the barcode strategy used in the experiment: sequence-specific primers - asymmetric design
+--min-passes 1
+
+# specify the input file type : raw subread data, no ccs data
+lima movie.subreads.bam barcodes.fasta prefix.bam
+
+######### Prepare the input files ############
+# 1) Input file : the raw sequel data got from CGR, input.bam
+# 2) Barcode file : barcode name and sequence information in the following standard requirement, barcode.fasta
+#     >bc001F
+#     TCAGACGATGCGTCAT
+#     >bc018R
+#     ATCTAGCGTAGTGATG
+#     Note: (i) the barcode sequences should be kept as fasta files
+            (ii) one entry per barcode sequence
+            (iii) no duplicate sequences or duplicate names
+            (iv) only upper-class bases
+            (v) use forward and reverse-complement
+            (vi) name the barcode with alphabetic character prefix to avoid confusion of barcode name and index
+
+################ Filters used in lima #################
+# --min-length: Reads with length under this number after demultiplexing will be omitted
+# --max-input-length: reads with length over this number after demultiplexing will be omitted
+# --min-passes 1: use asymmetric barcode design, insert-adpter-INSERT-adapter-insert
+# --keep-idx-order: 2 identified barcode idx are sorted ascending, and in the raw data, the correct order cannot be determined. This affects the bc tag, prefix.counts file, and --split-bam file names.If the input is raw subreads and asymmetric pairs, there is no way to distinguish between pairs bc101--bc102 and bc102--bc101
+# --guess N: performs demultiplexing twice. In the first iteration, all barcodes are tested per ZMW, afterwards, the barcode occurrences are counted and their mean barcode score is tested against the provided threshold N. Only those barcode pairs that pass this threshold are used in the second iteration to product the final demux output.
+# --min-score: ZMWs with barcode socre below this number will be omitted. It is advised to set it to 45. It is normalized to a range between 0 and 100, whereas 0 is no hit and 100 perfect match
+# --score-full-pass: only use reads flanked by adapters on both sides for barcode identification, full-pass reads
+# --different: use asymmetric barcode system
+
+lima --min-length 5000 --max-input-length 10000 \
+--min-passes 1 --score-full-pass \
+--keep-idx-order --split-bam \
+m54118_200110_094247.subreads.bam \
+All_barcode_List.fasta \
+PgiC_demul.bam
+
+# Ignore the --keep-idx-order and --split-bam
+# Add the barcode arguement --different
+# Add --peek-guess to remove spurious barcode hits
+# Does partial barcode list work on lima? Or should I use the entire barcode list?
+# Partial barcode list does not work! Use the full list!
+
+lima --min-length 5000 --different \
+--score-full-pass --peek-guess \
+m54118_200110_094247.subreads.bam \
+All_barcode_List.fasta \
+PgiC_demul.bam
+
+# Output : diy@ada04:/scratch/diy/Barcode_test_1/PgiC_demul.bam 
+
+# Does --split-bam work? 
+
+mkdir split_bam
+
+lima --min-length 5000 --different --split-bam \
+--score-full-pass --peek-guess \
+m54118_200110_094247.subreads.bam \
+All_barcode_List.fasta \
+./split_bam/PgiC_demul.bam
+

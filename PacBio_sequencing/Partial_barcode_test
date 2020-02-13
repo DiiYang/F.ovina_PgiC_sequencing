@@ -1,0 +1,77 @@
+
+# Input : diy@ada04:/scratch/diy/Barcode_test_1/PgiC_demul.bam 
+
+# Does --split-bam work? 
+
+mkdir split_bam
+
+lima --min-length 5000 --different --split-bam \
+--score-full-pass --peek-guess \
+m54118_200110_094247.subreads.bam \
+All_barcode_List.fasta \
+./split_bam/PgiC_demul.bam
+
+# lima input for LAA: diy@ada04:/scratch/diy/Barcode_test_1/split_bam/
+# LAA test on single barcode pair on split bam files: barcode pair = bc003F--bc045R, input file = PgiC_demul.3--45.bam
+
+laa --minLength=5000 --clusterGuide ./Festuca_ovina_PGI_sequences.fasta \
+--fullLength \
+--maxClusteringReads=1000 --fullLengthClustering --minClusterSize=20 --Clustering \
+--maxPhasingReads=1000 --Phasing \
+--minPredictedAccuracy=0.999 \
+./split_bam/PgiC_demul.3--45.bam
+
+>|> 20200213 14:40:03.205 -|- WARN -|- FastaToGroupNames -|- 0x7feb5f3307c0|| -|- No description to use as group identifier for reference 'HQ616103,PgiC1', falling back to record id
+>|> 20200213 14:40:03.205 -|- WARN -|- FastaToGroupNames -|- 0x7feb5f3307c0|| -|- No description to use as group identifier for reference 'HQ616104,PgiC2', falling back to record id
+laa: pthread_mutex_lock.c:62: __pthread_mutex_lock: Assertion `mutex->__data.__owner == 0' failed '
+
+# ? This error message does not make any sense!
+
+# Extract partial input file from the original sequencing file 
+samtools view m54118_200110_094247.subreads.bam | head -n 10 | samtools view -bo subreads_partial.bam
+
+
+# Use the partial sequence file as input, to test if laa is working 
+
+laa --minLength=5000 --clusterGuide ./Festuca_ovina_PGI_sequences.fasta \
+--fullLength \
+--maxClusteringReads=1000 --fullLengthClustering --minClusterSize=20 --Clustering \
+--maxPhasingReads=1000 --Phasing \
+--minPredictedAccuracy=0.999 \
+subreads_partial.bam 
+
+>|> 20200213 15:41:17.767 -|- FATAL -|- Runner -|- 0x7fe83668e7c0|| -|- INPUT: only valid PacBio BAM or DataSet XML files are supported
+>|> 20200213 15:41:17.767 -|- FATAL -|- Runner -|- 0x7fe83668e7c0|| -|- options --fullLength, --fullLengthPreference, --fullLengthClustering: are only valid when input data is barcoded
+>|> 20200213 15:41:17.767 -|- WARN -|- FastaToGroupNames -|- 0x7fe83668e7c0|| -|- No description to use as group identifier for reference 'HQ616103,PgiC1', falling back to record id
+>|> 20200213 15:41:17.767 -|- WARN -|- FastaToGroupNames -|- 0x7fe83668e7c0|| -|- No description to use as group identifier for reference 'HQ616104,PgiC2', falling back to record id
+# Aborted mannually 
+# Problems here: I cannot directly index this file because if I do this above, no header information is obtained for the subreads_partial.bam
+# Check in the following way: 
+samtools view -H m54118_200110_094247.subreads.bam
+samtools view -H subreads_partial.bam
+# The header should be like: 
+# @HD     VN:1.5  SO:unknown      pb:3.0.5
+# @RG     ID:680c18aa     PL:PACBIO       DS:READTYPE=SUBREAD;Ipd:CodecV1=ip;PulseWidth:CodecV1=pw;BINDINGKIT=101-500-400;SEQUENCINGKIT=101-427-800;BASECALLERVERSION=5.0.0;FRAMERATEHZ=100.000000  PU:m54118_200110_094247 PM:SEQUEL
+# @PG     ID:baz2bam      PN:baz2bam      VN:6.0.0.47712  CL:/opt/pacbio/ppa-6.0.0/bin/baz2bam /data/pb/m54118_200110_094247.baz -o /data/pb/m54118_200110_094247 --metadata /data/pb/.m54118_200110_094247.metadata.xml -j 12 -b 12 --progress --silent --minSubLength 50 --minSnr 3.750000 --adapters /data/pb/m54118_200110_094247.adapters.fasta --controlAdapters /data/pb/m54118_200110_094247.controls.adapters.fasta --controls /data/pb/m54118_200110_094247.controls.fasta --maxInputQueueZMW 10000 --zmwBatchSize 1000 --zmwHeaderBatchSize 1000
+# @PG     ID:bazFormat    PN:bazformat    VN:1.5.0
+# @PG     ID:bazwriter    PN:bazwriter    VN:6.0.0.47712
+# Create subreads_partial_2.bam with -h to obtain the head information, and index this file
+samtools view -h m54118_200110_094247.subreads.bam |  head -n 10 | samtools view -bo subreads_partial_2.bam
+pbindex subreads_partial_2.bam
+
+# Start with lima again 
+lima --min-length 5000 --different \
+--score-full-pass --peek-guess \
+subreads_partial_2.bam  \
+All_barcode_List.fasta \
+partial_demul.bam
+
+laa --minLength=5000 --clusterGuide ./Festuca_ovina_PGI_sequences.fasta \
+--fullLength \
+--maxClusteringReads=1000 --fullLengthClustering --Clustering \
+--maxPhasingReads=1000 --Phasing \
+--minPredictedAccuracy=0.600 \
+partial_demul.bam 
+>|> 20200213 16:00:34.727 -|- WARN -|- FastaToGroupNames -|- 0x7f6e1c2607c0|| -|- No description to use as group identifier for reference 'HQ616103,PgiC1', falling back to record id
+>|> 20200213 16:00:34.727 -|- WARN -|- FastaToGroupNames -|- 0x7f6e1c2607c0|| -|- No description to use as group identifier for reference 'HQ616104,PgiC2', falling back to record id
+Segmentation fault

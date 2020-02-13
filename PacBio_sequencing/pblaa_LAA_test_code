@@ -1,0 +1,103 @@
+######### PacBio pblaa LAA ##########
+
+# Creat channel "bioconda"
+chos 7
+conda config --add channels bioconda
+
+
+# Install package pblaa and pbbam under bioconda
+conda install -c bioconda pblaa
+conda install -c bioconda pbbam
+conda list
+
+######### Prepare the input files ############
+# 1) Input file : the raw sequel data got from CGR, input.bam
+# 2) Barcode file : barcode name and sequence information in the following standard requirement, barcode.fasta
+#     >bc001F
+#     TCAGACGATGCGTCAT
+#     >bc018R
+#     ATCTAGCGTAGTGATG
+#     Note: (i) the barcode sequences should be kept as fasta files
+            (ii) one entry per barcode sequence
+            (iii) no duplicate sequences or duplicate names
+            (iv) only upper-class bases
+            (v) use forward and reverse-complement
+            (vi) name the barcode with alphabetic character prefix to avoid confusion of barcode name and index
+# 3) Barcode pair information, comma-separated, barcode_pair.csv
+
+######### laa options ############
+# Data filtering options
+#   --minLength / --maxLength: minimum / maximum length of input reads
+#   --clusterGuide: path to a fasta file of reference sequence to use for guided clustering
+# Barcode options
+#   --barcodes: path to a fasta file of the barcode sequences used, overwriting any names in the dataset
+#   --doBc: (Upper case B and lower case c) Comma-separated list of barcode pairs to analyse, by name "bc001F -- bc017R"
+#   --fullLength: Filter input reads by presence of both flanking barcodes
+# Coarse Clustering options
+#   --maxReads / --maxClusteringReads: maximum number of input reads to cluster per barcodes
+#   --fullLengthClustering: only usse full length subreads when clustering
+#   --minClusterSize: minimum number reads supporting a cluster before it is reported
+#   --Clustering: enable the coarse Clustering
+# Fine Phasing options
+#   --maxPhasingReads: maximum number of reads to use for phasing
+#   --Phasing: enable the fine phasing step
+# Post-processing options
+#   --minPredictedAccuracy: minimum predicted consensus accuracy below which a consensus is called noise
+# Result options
+#   --resultFile: output file for high-quality results, amplicon_analysis.fastaq
+
+The code: 
+laa --minLength=5000 --maxLength=10000 --clusterGuide reference_sequences.fasta \
+--barcodes All_barcode_List.fasta --doBc="bc011F--bc031R,bc036F--bc060R,bc001F--bc030R,..." \
+--fullLength \
+--maxClusteringReads=1000 --fullLengthClustering --minClusterSize=20 --Clustering \
+--maxPhasingReads=1000 --Phasing \
+--minPredictedAccuracy=0.999 \
+--resultFile ./Results/amplicon_analysis.fastq
+input.subreads.bam
+
+###########
+Try: use a small barcode test list to run laa with demultiplexing again, to see if the code above can work properly
+
+laa --minLength=5000 --maxLength=10000 --clusterGuide ./Festuca_ovina_PGI_sequences.fasta \
+--barcodes Barcode_test_2 --doBc="bc001F--bc017R, bc001F--bc018R, bc001F--bc038R,bc002F--bc017R,bc002F--bc018R,bc002F--bc038R,bc038F--bc017R,bc038F--bc018R,bc038F--bc038R" \
+--fullLength \
+--maxClusteringReads=1000 --fullLengthClustering --minClusterSize=20 --Clustering \
+--maxPhasingReads=1000 --Phasing \
+--minPredictedAccuracy=0.999 \
+PgiC_test_demul.0--0.bam 
+
+Warning : No description to use as group identifier for reference 'HQ616103.1', falling back to record id
+Warning ：No description to use as group identifier for reference 'HQ616104.1', falling back to record id
+Bus error
+
+###########
+# For the warning above, try to simplify the description of the references in the Festuca_ovina_PGI_sequences.fasta 
+>HQ616103 
+>HQ616104
+# Delete the --maxLength arguement in case the consensus get overlapped and the maximum length is extended 
+# Change the barcode file name into Barcode_test_2.fasta
+
+laa --minLength=5000 --clusterGuide ./Festuca_ovina_PGI_sequences.fasta \
+--barcodes Barcode_test_2.fasta --doBc="bc001F--bc017R, bc001F--bc018R, bc001F--bc038R,bc002F--bc017R,bc002F--bc018R,bc002F--bc038R,bc038F--bc017R,bc038F--bc018R,bc038F--bc038R" \
+--fullLength \
+--maxClusteringReads=1000 --fullLengthClustering --minClusterSize=20 --Clustering \
+--maxPhasingReads=1000 --Phasing \
+--minPredictedAccuracy=0.999 \
+m54118_200110_094247.subreads.bam 
+
+|- FATAL -|- Runner -|- 0x7f7e8e8eb7c0|| -|- options --fullLength, --fullLengthPreference, --fullLengthClustering: are only valid when input data is barcoded
+>|> 20200213 12:04:21.533 -|- WARN -|- FastaToGroupNames -|- 0x7f7e8e8eb7c0|| -|- No description to use as group identifier for reference 'HQ616103', falling back to record id
+>|> 20200213 12:04:21.533 -|- WARN -|- FastaToGroupNames -|- 0x7f7e8e8eb7c0|| -|- No description to use as group identifier for reference 'HQ616104', falling back to record id
+
+###########
+# Use the lima output.bam as the input for the above laa test (diy@ada04:/scratch/diy/Barcode_test_1/PgiC_demul.bam)
+
+laa --minLength=5000 --clusterGuide ./Festuca_ovina_PGI_sequences.fasta \
+--barcodes Barcode_test_2.fasta --doBc="bc001F--bc017R,bc001F--bc018R,bc001F--bc038R,bc002F--bc017R,bc002F--bc018R,bc002F--bc038R,bc038F--bc017R,bc038F--bc018R,bc038F--bc038R" \
+--fullLength \
+--maxClusteringReads=1000 --fullLengthClustering --minClusterSize=20 --Clustering \
+--maxPhasingReads=1000 --Phasing \
+--minPredictedAccuracy=0.999 \
+PgiC_demul.bam
+
