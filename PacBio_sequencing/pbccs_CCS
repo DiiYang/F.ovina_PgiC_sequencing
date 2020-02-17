@@ -1,0 +1,21 @@
+# CCS takes multiple reads of the same SMRTbell molecule and conbines them together to produce an highly accurate consensus sequence, HiFi read
+# CCS is usually used in combination of lima and LAA to generate highly accurate sequencing from PacBio
+# ccs can be installed via bioconda via pbccs
+# On ada04 /scratch/diy/CCS_test/
+
+ccs m54118_200110_094247.subreads.bam PgiC.ccs.bam
+
+lima --num-threads 40 --min-length 5000 --different --split-bam \
+--score-full-pass --peek-guess \
+PgiC.ccs.bam \
+Barcode_List_C1_with_primer.fasta \
+./split_bam/PgiC1_demul.bam
+
+for i in $(ls *.bam)
+do
+ laa  --Clustering --Phasing --minPredictedAccuracy=0.999 --resultFile="./ccs_Output/$i.fastq" --reportFile="./ccs_Summary/$i.csv" ./$i 
+done
+
+>|> 20200217 17:30:31.346 -|- FATAL -|- Runner -|- 0x7f925bca77c0|| -|- Missing base features: IPD or PulseWidth
+
+# Something went wrong here, there should be other steps to link the CCS file and the laa function
