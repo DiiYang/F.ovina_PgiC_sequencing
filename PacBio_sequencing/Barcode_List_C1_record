@@ -1,0 +1,60 @@
+### lima test on PgiC1 only ###
+#### !!!!! Always do these in screens ####
+
+# Create a barcode file that contains both the barcode and first several bases of the primer, to distinguish from PgiC2 barcodes
+# Note, I tried to use the entire primer sequence, which contains K/M in the sequence, and it did not work, given the error "Invalid bases"
+# Use the first 25 bases of the barcode+primer sequence, which is 16 bp of barcode, 9 bp of primer
+# For both forward and reverse primers, use 5' - 3' sequence
+# Use file Barcode_List_C1_with_primer.fasta which onlu contains the first 25 bp of each primer
+
+lima --min-length 5000 --different --split-bam \
+--score-full-pass --peek-guess \
+m54118_200110_094247.subreads.bam \
+Barcode_List_C1_with_primer.fasta \
+./split_bam/PgiC1_demul.bam
+
+>|> 20200217 15:06:12.359 -|- FATAL -|- operator() at ../subprojects/pbcopper/src/logging/Logging.cpp:36 -|- 0x7fb6c0970720|| -|- caught exception: "Cannot allocate memory"
+
+>|> 20200217 15:06:12.359 -|- FATAL -|- operator() at ../subprojects/pbcopper/src/logging/Logging.cpp:49 -|- 0x7fb6c0970720|| -|- caught SIGABRT
+Aborted
+
+# Apparently the work is taking too much memory space and the program says no
+# Try to set a thread limit and try again? 
+
+lima --num-threads 80 --min-length 5000 --different --split-bam \
+--score-full-pass --peek-guess \
+m54118_200110_094247.subreads.bam \
+Barcode_List_C1_with_primer.fasta \
+./split_bam/PgiC1_demul.bam
+
+# Create folders for the laa test : C1_Output C1_Summary
+
+mkdir C1_Output
+mkdir C1_Summary
+
+#!/bin/bash
+
+for i in $(ls *.bam)
+do
+ laa  --Clustering --Phasing --minPredictedAccuracy=0.999 --resultFile="./C1_Output/$i.fastq" --reportFile="./C1_Summary/$i.csv" ./$i 
+done
+
+### lima test on PgiC2 only ###
+
+# As the C2 specific primers do not contain those characters, directly use the barcode+primer sequence for the Barcode_List_C2_with_primer.fasta
+
+lima --num-threads 80 --min-length 5000 --different --split-bam \
+--score-full-pass --peek-guess \
+m54118_200110_094247.subreads.bam \
+Barcode_List_C2_with_primer.fasta \
+./split_bam/PgiC2_demul.bam
+
+# Create folders for the laa test : C2_Output C2_Summary
+
+mkdir C2_Output
+mkdir C2_Summary
+
+for i in $(ls *.bam)
+do
+ laa  --Clustering --Phasing --minPredictedAccuracy=0.999 --resultFile="./C2_Output/$i.fastq" --reportFile="./C2_Summary/$i.csv" ./$i 
+done
