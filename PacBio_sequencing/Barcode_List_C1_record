@@ -6,6 +6,7 @@
 # Use the first 25 bases of the barcode+primer sequence, which is 16 bp of barcode, 9 bp of primer
 # For both forward and reverse primers, use 5' - 3' sequence
 # Use file Barcode_List_C1_with_primer.fasta which onlu contains the first 25 bp of each primer
+# on ada06 /scratch/diy/Barcode_List_C1
 
 lima --min-length 5000 --different --split-bam \
 --score-full-pass --peek-guess \
@@ -42,6 +43,7 @@ done
 ### lima test on PgiC2 only ###
 
 # As the C2 specific primers do not contain those characters, directly use the barcode+primer sequence for the Barcode_List_C2_with_primer.fasta
+# On ada08 /scratch/diy/Barcode_List_C2
 
 lima --num-threads 80 --min-length 5000 --different --split-bam \
 --score-full-pass --peek-guess \
