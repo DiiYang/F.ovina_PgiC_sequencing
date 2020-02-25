@@ -1,0 +1,107 @@
+# Approaching the bwa folder to my working directory
+nano ~/.bashrc
+export "PATH=~/program/bwa-0.7.17/:PATH"
+source ~/.bashrc
+
+# A test using only one input file, PgiC2_demul.0--20.bam.fastq, try to align this single file to the reference 
+# This file contains 2 allele sequences
+# Index the reference.fasta
+bwa index Festuca_ovina_PGI_sequences.fasta
+
+# Align the reads to the reference and creat SAM file
+# This will load the reference index, align the reads and produce a SAM file calledd aligned.sam
+bwa mem Festuca_ovina_PGI_sequences.fasta PgiC2_demul.0--20.bam.fastq > aligned.sam
+
+# Creat a BAM file using samtools
+# Creat a BAM index for such file
+samtools view -b -h aligned.sam > aligned.bam 
+samtools index aligned.bam
+
+### Does this work with piping?### 
+bwa mem Festuca_ovina_PGI_sequences.fasta PgiC2_demul.0--20.bam.fastq |samtools view -b -h aligned_2.bam 
+
+[M::bwa_idx_load_from_disk] read 0 ALT contigs
+[M::process] read 2 sequences (12547 bp)...
+[E::hts_open_format] Failed to open file aligned_2.bam
+samtools view: failed to open "aligned_2.bam" for reading: No such file or directory
+[M::mem_process_seqs] Processed 2 reads in 0.057 CPU sec, 0.057 real sec
+
+# Samtools view -o : specify the output 
+bwa mem Festuca_ovina_PGI_sequences.fasta PgiC2_demul.0--20.bam.fastq | samtools view -b -h -o aligned_2.bam 
+
+# Use IGV to visualize the bam alignment to PgiC2 reference (HQ616104.1)
+
+### Does this work on merged fastq files? ###
+
+cd /Barcode_List_C2/split_bam/C2_Output/
+mkdir merged
+cat *.fastq > ./merged/PgiC2_demul_reads_merged.fastq 
+cd merged/
+bwa index Festuca_ovina_PGI_sequences.fasta
+bwa mem Festuca_ovina_PGI_sequences.fasta PgiC2_demul_reads_merged.fastq | samtools view -b -h -o PgiC2_demul_reads_merged.bam 
+
+[bwt_restore_sa] SA-BWT inconsistency: seq_len is not the same. Abort!
+
+
+# Use separate input files instead of merged 
+cd /Barcode_List_C2/split_bam/C2_Output/
+mkdir bwa_test
+
+nano
+#!/bin/bash
+for i in $(ls *.fastq)
+do
+ bwa mem Festuca_ovina_PGI_sequences.fasta $i | samtools view -b -h -o ./bwa_test/$i.bam ./$i
+done
+
+sh loop_test.sh
+
+[W::sam_read1] parse error at line 2
+[main_samview] truncated file.
+loop_test.sh: 4: loop_test.sh: bwa: Permission denied
+
+nano
+#!/bin/bash
+for i in $(ls *.fastq)
+do
+ bwa mem Festuca_ovina_PGI_sequences.fasta $i.fastq > $i.sam ./$i
+done
+
+sh loop_test.sh
+
+loop_test.sh: 4: loop_test.sh: bwa: Permission denied
+
+## Change the permissions of this file and check 
+ chmod +x loop_test.sh
+ ll loop_test.sh
+
+# loop_test.sh
+#!/bin/bash
+for i in $(ls *.fastq)
+do
+ bwa mem Festuca_ovina_PGI_sequences.fasta $i > ./bwa_test/$i.sam ./$i
+done
+
+# loop_samtools.sh
+mkdir /Barcode_List_C2/split_bam/C2_Output/bam/
+nano
+#!/bin.bash
+for i in $(ls *.sam)
+do
+ samtools view -b -h -o ../bam/$i.bam ./$i 
+done
+
+sh loop_samtools.sh
+
+# merge all the bam files into a merged BAM
+samtools merge PgiC2_demul_reads_merged.bam *.bam
+[W::bam_merge_core2] No @HD tag found.
+
+samtools merge PgiC2_demul_reads_merged.bam *.bam
+samtools index PgiC2_demul_reads_merged.bam
+
+# When importing these files to IGV, it appears that: 
+# Error encountered querying alignments: htsjdk.samtools.util.RuntimeIOException: Invalid file header in BAM index PgiC2_demul_reads_merged_2.bam.bai
+# Or 
+# Error encountered querying alignments: htsjdk.samtools.util.RuntimeIOException: C:\Users\yangd\Desktop\Bioinformatics\lima-laa PgiC2\PgiC2_demul_reads_merged.bam has invalid uncompressedLength: -2142275908
+# This is usually caused by indexing a bad or out-of -date index. Try to recompute the index for the bams
