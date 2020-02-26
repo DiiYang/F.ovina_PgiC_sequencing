@@ -1,0 +1,47 @@
+# Try to use hisat2 instead of bwa to do the alignment
+hisat2 -x Festuca_ovina_PGI_sequences.fasta -U PgiC1_demul | samtools view -bo ./hisat2/PgiC1_demul.bam
+
+Warning: Could not open read file "PgiC1_demul" for reading; skipping...
+Error: No input read files were valid
+(ERR): hisat2-align exited with value 1
+
+# Correct the input file name
+hisat2 -p 40 -x Festuca_ovina_PGI_sequences.fasta -U PgiC1_demul* | samtools view -bo ./hisat2/PgiC1_demul.bam
+(ERR): hisat2-align exited with value 1
+
+# Try with single file 
+hisat2 -p 40 -x Festuca_ovina_PGI_sequences.fasta -U PgiC1_demul.28--41.bam.fastq | samtools view -bo ./hisat2/PgiC1_demul.28--41.bam.fastq.bam
+
+Could not locate a HISAT2 index corresponding to basename "Festuca_ovina_PGI_sequences.fasta"
+Error: Encountered internal HISAT2 exception (#1)
+Command: /pub36/diy/program/hisat2-2.1.0/hisat2-align-s --wrapper basic-0 -p 40 -x Festuca_ovina_PGI_sequences.fasta -U PgiC1_demul.28--41.bam.fastq
+(ERR): hisat2-align exited with value 1
+
+# Creat a index file for the reference 
+hisat2 -build Festuca_ovina_PGI_sequences.fasta Festuca_ovina_PGI_sequences
+hisat2-build Festuca_ovina_PGI_sequences.fasta Festuca_ovina_PGI_sequences
+
+hisat2 -p 40 -x Festuca_ovina_PGI_sequences -U PgiC1_demul.28--41.bam.fastq | samtools view -bo ./hisat2/PgiC1_demul.28--41.bam.fastq.bam
+
+hisat2 -p 40 -x Festuca_ovina_PGI_sequences -U PgiC1_demul* | samtools view -bo ./hisat2/PgiC1_demul.bam
+# same error message as before 
+
+# Maybe try with merged file?
+mkdir merged
+cat *fastq > ./merged/PgiC1_demul_merged.fastq
+cd merged
+cp Festuca_ovina_PGI_sequences.fasta ./merged/
+hisat2-build Festuca_ovina_PGI_sequences.fasta Festuca_ovina_PGI_sequences
+hisat2 -p 40 -x Festuca_ovina_PGI_sequences -U PgiC1_demul_merged.fastq | samtools view -bo PgiC1_demul_merged.bam
+samtools index PgiC1_demul_merged.bam
+
+[E::hts_idx_push] Chromosome blocks not continuous
+samtools index: failed to create index for "PgiC1_demul_merged.bam"
+
+# Sort the bam file before indexing 
+samtools sort -m 10G -@ 4 -o PgiC1_demul_merged_sorted.bam PgiC1_demul_merged.bam
+[bam_sort_core] merging from 0 files and 4 in-memory blocks...
+samtools index PgiC1_demul_merged_sorted.bam 
+
+# Download the files and open in IGV, it gives errors: 
+# Error encountered querying alignments: htsjdk.samtools.util.RuntimeIOException: Invalid file header in BAM index PgiC1_demul_merged_sorted.bam.bai: ‹
