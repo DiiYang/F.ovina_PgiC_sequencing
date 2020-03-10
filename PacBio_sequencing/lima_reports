@@ -14,32 +14,47 @@ Barcode_List_C1_with_primer.fasta \
 # lima output files: 
 # prefix.bam : contains clipped records, annotated with barcode tags, that passed filters
 # prefix.lima.report : tab-separated file describing each ZMW, unfiltered. This is useful to investigate the demultiplexing process and the underlying data. A single row contains all reads from a single ZMW. For --per-read, each row contains one subread, and ZMWs might span multiple rows
-# prefix.lima.summary : lists how many ZMWs were filtered, how many ZMWs are the same or different, and how many reads were filtered.
 
+
+# prefix.lima.summary : lists how many ZMWs were filtered, how many ZMWs are the same or different, and how many reads were filtered.
 # PgiC2_demul.lima.summary 
 ZMWs input                (A) : 336574        # In total, 336574 ZMWs went into lima
 ZMWs above all thresholds (B) : 27331 (8%)    # No. of ZMWs passed to the output
 ZMWs below any threshold  (C) : 309243 (92%)  # No. of ZMWs did not qualify the filters
 
 ZMW marginals for (C):                        # The marginal counts for each filter 
-Below min length              : 6457 (2%)     # 
-Below min score               : 0 (0%)
-Below min end score           : 0 (0%)
-Below min passes              : 170621 (55%)
-Below min score lead          : 125187 (40%)
-Below min ref span            : 58371 (19%)
-Without adapter               : 170621 (55%)
-Undesired hybrids             : 1572 (1%)
-Undesired same barcode pairs  : 10400 (3%)
+Below min length              : 6457 (2%)     # --min-length 5000
+Below min score               : 0 (0%)        # --min-score n : omit ZMEs with average barcode scores below n (the barcode score measures the alignment between a barcode attached to a read and an ideal barcode sequence, and is an indicator how well the chosen barcode pair matches). Default = 0
+Below min end score           : 0 (0%)        # --min-end-score n : specifies the min end barcode score applied to the individual leading and trailing ends. Default = 0.
+Below min passes              : 170621 (55%)  # --min-passes n : omit ZMWs with less than n full passes, a read with a leading and trailing adapter. Default = 0, no full-pass needed.
+Below min score lead          : 125187 (40%)  # --score-lead measures how close the best barcode call is to the second best. Possible situations: samples are not barcoded / barcoded sequences are genetically too close / products are not clean or degenerated... Decrease --score-lead will cause potential risk of introducing false positives.
+Below min ref span            : 58371 (19%)   # --min-ref-span specifies the minimum reference span relative to the barcode length. Default = 0.5.
+Without adapter               : 170621 (55%)  # ? why? it seems that my subreads are missing adapters, so they cannot pass the --min-pass filter!
+Undesired hybrids             : 1572 (1%)     # --peak-guess
+Undesired same barcode pairs  : 10400 (3%)    # --different
 
-ZMWs for (B):
-With different barcodes       : 27331 (100%)
-Coefficient of correlation    : 59.46%
+ZMWs for (B):                                 # Info. for the ZMWs passed all the filters
+With different barcodes       : 27331 (100%)  # --different
+Coefficient of correlation    : 59.46%        # coefficient of variation for the barcode ZMW yield distribution in percent
 
-ZMWs for (A):
-Allow diff barcode pair       : 165953 (49%)
-Allow same barcode pair       : 165953 (49%)
+ZMWs for (A):                                 # For all the input ZMWs, how many allow calling a same or different barcode pair
+Allow diff barcode pair       : 165953 (49%)  # 49% ZMWs have at least one full pass to allow a different barcode pair call 
+Allow same barcode pair       : 165953 (49%)  # 49% ZMWs have at least half an adapter to allow a same barcode pair call
 
-Reads for (B):
-Above length                  : 265665 (82%)
-Below length                  : 59751 (18%)
+Reads for (B):                                # For the ZMWs passed all the filters, No. of reads above/below the --min-length argument
+Above length                  : 265665 (82%)  # --min-length set to 5000, 82% of ZMWs are longer than 5000
+Below length                  : 59751 (18%)   # no. of reads that are too short
+
+# Reads for B, above length + below length = 265665 + 59751 = 325416
+# This means, I should have 325416 reads passed all the filters, but only 82% of them are above the length I set (my option)
+# But for block 1, section B only contains 27331 reads that passed all the filters and went into the output
+# Why inconsistent?
+
+# The problem for section C is that, many of my subreads did not contain any adapter, so they fail in the --min-passes option
+# Why missing adapters? This should be rare but most of my subreads are missing adapters!
+
+
+
+# prefix.lima.counts : tsv file, shows the counts of each observed barcode pair, only passing ZMWs are counted 
+# This file also provides the barcode index names and the original barcode names, which is important for linking the final called reads back to the sample list
+# See  Sample_List_for_Barcode_List_C2.xlsx, sheet 2
