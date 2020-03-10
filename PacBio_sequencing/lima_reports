@@ -1,0 +1,45 @@
+
+# Run R in terminal
+R [options] [<infile] [>outfile]
+
+# options: --save --no-save --vanilla: must choose one from these three
+
+# My lima code: 
+lima --num-threads 80 --min-length 5000 --different --split-bam \
+--score-full-pass --peek-guess \
+m54118_200110_094247.subreads.bam \
+Barcode_List_C1_with_primer.fasta \
+./split_bam/PgiC1_demul.bam
+
+# lima output files: 
+# prefix.bam : contains clipped records, annotated with barcode tags, that passed filters
+# prefix.lima.report : tab-separated file describing each ZMW, unfiltered. This is useful to investigate the demultiplexing process and the underlying data. A single row contains all reads from a single ZMW. For --per-read, each row contains one subread, and ZMWs might span multiple rows
+# prefix.lima.summary : lists how many ZMWs were filtered, how many ZMWs are the same or different, and how many reads were filtered.
+
+# PgiC2_demul.lima.summary 
+ZMWs input                (A) : 336574        # In total, 336574 ZMWs went into lima
+ZMWs above all thresholds (B) : 27331 (8%)    # No. of ZMWs passed to the output
+ZMWs below any threshold  (C) : 309243 (92%)  # No. of ZMWs did not qualify the filters
+
+ZMW marginals for (C):                        # The marginal counts for each filter 
+Below min length              : 6457 (2%)     # 
+Below min score               : 0 (0%)
+Below min end score           : 0 (0%)
+Below min passes              : 170621 (55%)
+Below min score lead          : 125187 (40%)
+Below min ref span            : 58371 (19%)
+Without adapter               : 170621 (55%)
+Undesired hybrids             : 1572 (1%)
+Undesired same barcode pairs  : 10400 (3%)
+
+ZMWs for (B):
+With different barcodes       : 27331 (100%)
+Coefficient of correlation    : 59.46%
+
+ZMWs for (A):
+Allow diff barcode pair       : 165953 (49%)
+Allow same barcode pair       : 165953 (49%)
+
+Reads for (B):
+Above length                  : 265665 (82%)
+Below length                  : 59751 (18%)
