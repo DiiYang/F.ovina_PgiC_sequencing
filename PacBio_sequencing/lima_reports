@@ -8,8 +8,8 @@ R [options] [<infile] [>outfile]
 lima --num-threads 80 --min-length 5000 --different --split-bam \
 --score-full-pass --peek-guess \
 m54118_200110_094247.subreads.bam \
-Barcode_List_C1_with_primer.fasta \
-./split_bam/PgiC1_demul.bam
+Barcode_List_C2_with_primer.fasta \
+./split_bam/PgiC2_demul.bam
 
 # lima output files: 
 # prefix.bam : contains clipped records, annotated with barcode tags, that passed filters
@@ -17,6 +17,7 @@ Barcode_List_C1_with_primer.fasta \
 
 
 # prefix.lima.summary : lists how many ZMWs were filtered, how many ZMWs are the same or different, and how many reads were filtered.
+# This table remains the same when running with and without --split-bam
 # PgiC2_demul.lima.summary 
 ZMWs input                (A) : 336574        # In total, 336574 ZMWs went into lima
 ZMWs above all thresholds (B) : 27331 (8%)    # No. of ZMWs passed to the output
@@ -49,12 +50,53 @@ Below length                  : 59751 (18%)   # no. of reads that are too short
 # This means, I should have 325416 reads passed all the filters, but only 82% of them are above the length I set (my option)
 # But for block 1, section B only contains 27331 reads that passed all the filters and went into the output
 # Why inconsistent?
+# These data only explains the no. of reads passed specific filters, but still I need to consider the barcode pairs I provided to the program!
 
 # The problem for section C is that, many of my subreads did not contain any adapter, so they fail in the --min-passes option
 # Why missing adapters? This should be rare but most of my subreads are missing adapters!
 
 
+# PgiC1_demul.lima.summary
+ZMWs input                (A) : 336574
+ZMWs above all thresholds (B) : 115745 (34%)
+ZMWs below any threshold  (C) : 220829 (66%)
+
+ZMW marginals for (C):
+Below min length              : 6480 (3%)
+Below min score               : 0 (0%)
+Below min end score           : 0 (0%)
+Below min passes              : 170621 (77%)
+Below min score lead          : 8015 (4%)
+Below min ref span            : 1904 (1%)
+Without adapter               : 170621 (77%)
+Undesired hybrids             : 5646 (3%)
+Undesired same barcode pairs  : 31503 (14%)
+
+ZMWs for (B):
+With different barcodes       : 115745 (100%)
+Coefficient of correlation    : 85.68%
+
+ZMWs for (A):
+Allow diff barcode pair       : 165953 (49%)
+Allow same barcode pair       : 165953 (49%)
+
+Reads for (B):
+Above length                  : 1071926 (82%)
+Below length                  : 230543 (18%)
+
 
 # prefix.lima.counts : tsv file, shows the counts of each observed barcode pair, only passing ZMWs are counted 
 # This file also provides the barcode index names and the original barcode names, which is important for linking the final called reads back to the sample list
 # See  Sample_List_for_Barcode_List_C2.xlsx, sheet 2
+
+other options that may be useful : 
+--dump-clips : clipped barcode regions will be stored in prefix.lima.clips
+--dump-removed : records that did not pass provided thresholds or are without barcodes will be stores in prefix.lima.removed.bam
+
+# Try to run the above again, with these extra options
+lima --num-threads 80 --min-length 5000 --different \
+--score-full-pass --peek-guess --dump-clips --dump-removed \
+m54118_200110_094247.subreads.bam \
+Barcode_List_C2_with_primer.fasta \
+PgiC2_demul2.bam
+
