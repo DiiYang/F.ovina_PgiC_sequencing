@@ -100,3 +100,4 @@ m54118_200110_094247.subreads.bam \
 Barcode_List_C2_with_primer.fasta \
 PgiC2_demul2.bam
 
+# What happens to the prefix.lima.bam file? Where should all these subreads go? 
