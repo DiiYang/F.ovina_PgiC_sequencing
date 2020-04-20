@@ -63,3 +63,25 @@ samtools index PgiC1_demul_merged_sorted.bam
 
 # Download the files and open in IGV, it gives errors: 
 # Error encountered querying alignments: htsjdk.samtools.util.RuntimeIOException: Invalid file header in BAM index PgiC1_demul_merged_sorted.bam.bai: ‹
+
+# For the PgiC1 new reference sequence, I've tested several, but they cannot align properly and cannot serve as a good reference, after all, I get the sequence for Barcode12--33_Cluster0_Phase0_NumReads493
+# Named as PgiC1_test_2.fasta
+hisat2-build PgiC1_test_2.fasta PgiC2_test_2
+hisat2 --score-min L,0,-1.6 -t -p 40 -x PgiC1_test_2 -U PgiC1_demul_merged.fastq | samtools view -hbo PgiC1_demul_test_2.bam
+
+
+Time loading forward index: 00:00:00
+Time loading reference: 00:00:00
+Multiseed full-index search: 00:00:03
+473 reads; of these:
+  473 (100.00%) were unpaired; of these:
+    91 (19.24%) aligned 0 times
+    382 (80.76%) aligned exactly 1 time
+    0 (0.00%) aligned >1 times
+80.76% overall alignment rate
+Time searching: 00:00:03
+Overall time: 00:00:03
+
+
+samtools sort -m 10G -@ 4 -o PgiC1_demul_test_2_sorted.bam PgiC1_demul_test_2.bam
+samtools index PgiC1_demul_test_2_sorted.bam
